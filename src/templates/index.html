@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Controle de vendas</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1 class="title">Controle de vendas</h1>
+        <p class="subtitle">Cadastre, atualize e acompanhe seus produtos em um só lugar.</p>
+      </div>
+      <div class="badge"><span class="dot"></span> Banco conectado</div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <h2>Cadastrar produto</h2>
+        </div>
+        <div class="card-body">
+          <form class="form" method="POST" action="/add">
+            <input class="input" name="nome_produto" placeholder="Ex: Notebook" required>
+            <input class="input" name="valor" type="number" step="0.01" placeholder="Ex: 1999.90" required>
+            <button class="btn" type="submit">Adicionar</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>Produtos cadastrados</h2>
+          <div class="muted">{{ produtos|length }} item(s)</div>
+        </div>
+        <div class="card-body">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Produto</th>
+                <th>Valor</th>
+                <th style="text-align:right;">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in produtos %}
+              <tr class="row">
+                <td>{{ p.id }}</td>
+                <td>{{ p.nome_produto }}</td>
+                <td class="price">R$ {{ "%.2f"|format(p.valor) }}</td>
+                <td>
+                  <div class="actions">
+                    <form method="POST" action="/update">
+                      <input type="hidden" name="idvendas" value="{{ p.id }}">
+                      <input class="input" name="novo_valor" type="number" step="0.01" placeholder="Novo valor" required>
+                      <button class="btn-ghost" type="submit">Atualizar</button>
+                    </form>
+
+                    <form method="POST" action="/delete" onsubmit="return confirm('Excluir este produto?');">
+                      <input type="hidden" name="id" value="{{ p.id }}">
+                      <button class="btn-danger" type="submit">Excluir</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
