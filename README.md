@@ -1,92 +1,40 @@
-# CRUD de Vendas com Python e MySQL
+# CRUD-Vendas
 
-Este projeto implementa um sistema CRUD (Create, Read, Update, Delete) para gerenciar vendas utilizando Python, MySQL e boas práticas de desenvolvimento — incluindo conexão segura, variáveis de ambiente, SQL parametrizado e estrutura modular.
-
----
-
-## 🚀 Tecnologias Utilizadas
-- Python 3
-- MySQL
-- mysql-connector-python
-- python-dotenv
-- pandas
-- matplotlib + seaborn
-- Programação modular
+Aplicação de exemplo para gerenciar vendas utilizando **Python** e **MySQL** com interface web simples.  
+Este projeto demonstra operações básicas de **CRUD** (Criar, Ler, Atualizar e Excluir) em um banco de dados, integradas com um backend em Python e templates HTML para visualização.  
 
 ---
 
-## 📂 Estrutura do Projeto
-CRUD-Vendas/
-│
-├── src/
-│   ├── database.py        # Conexão com o banco via variáveis de ambiente (.env)
-│   ├── crud.py            # Funções CRUD (Create, Read, Update, Delete)
-│   ├── processamento.py   # Leitura da base + agrupamentos e cálculos
-│   ├── views.py           # Gráfico dos produtos mais vendidos
-│   ├── main.py            # Interface de menu no terminal
-│
-├── .env                   # Credenciais do MySQL (não subir para o GitHub)
-├── .gitignore
-├── requirements.txt
-└── README.md
+# 📌 Descrição
+
+Este projeto foi desenvolvido como um painel profissional de vendas para fins didáticos e portfólio.  
+Permite registrar vendas, visualizar, atualizar e remover registros de venda de forma interativa através de um navegador.  
+Seu foco é demonstrar integração entre Python, MySQL e templates front-end. 
+---
+
+# 🚀 Tecnologias Utilizadas
+
+* Python 3.x  
+* Flask (micro-framework web)  
+* MySQL (banco de dados relacional)  
+* Jinja2 Templates (front-end HTML)  
+* CSS (interface básica)  
 
 ---
 
-## 🔧 Instalação
+# 📥 Pré-requisitos
 
-### Clone o repositório: git clone https://github.com/tiferreira-dev/CRUD-Vendas
+Antes de instalar, certifique-se de ter:
 
-### Instale as dependências: pip install -r requirements.txt
+* Python 3.8 ou superior  
+* MySQL instalado e em execução  
+* Terminal / Prompt configurado  
 
-### Configure o arquivo `.env`: 
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=SUA_SENHA_AQUI
-DB_NAME=bdvendas
+---
 
-### Crie o banco e a tabela no MySQL:
-```sql
-CREATE DATABASE bdvendas;
+# 🛠️ Instalação
 
-USE bdvendas;
+1. Clone o repositório:
 
-CREATE TABLE vendas (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nome_produto VARCHAR(100),   
-    valor FLOAT
-);
-
-python src/main.py
-
-Funcionalidades
-
-CRUD Completo
-	•	Cadastrar produto
-	•	Listar produtos
-	•	Atualizar valor
-	•	Deletar produto
-
-Gráfico Analítico
-
-Gerado com Seaborn + Matplotlib:
-	•	Top 5 produtos mais vendidos
-	•	Visualização clara para análise rápida
-	•	Ideal para evoluir para dashboard, API ou interface gráfica
-
-Boas Práticas Implementadas
-	•	SQL seguro com placeholders (%s)
-	•	Variáveis de ambiente (sem expor senha no código)
-	•	Arquitetura limpa e modular
-	•	Separação entre CRUD, visualização e processamento
-	•	Tratamento básico de erros
-	•	Projeto preparado para evoluir para:
-	•	API (FastAPI / Flask)
-	•	Interface gráfica
-	•	Dashboard profissional
-
-    Autor
-
-Ygor Barros Ferreira
-GitHub: https://github.com/tiferreira-dev
-
-
+git clone https://github.com/tiferreira-dev/CRUD-Vendas.git
+cd CRUD-Vendas
