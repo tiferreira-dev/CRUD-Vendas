@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Novo Ticket{% endblock %}
+{% block page_title %}Novo ticket{% endblock %}
+{% block subtitle %}Registrar uma solicitação de suporte{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h2>Cadastro de ticket</h2>
+    <div class="muted">Preencha todos os campos</div>
+  </div>
+
+  <div class="card-body">
+    <form method="POST"
+          action="{{ url_for('suporte_novo_post') }}"
+          style="display:grid; gap:10px;">
+
+      <input class="input"
+             name="cliente_nome"
+             placeholder="Nome do cliente"
+             required>
+
+      <input class="input"
+             name="cliente_whatsapp"
+             placeholder="WhatsApp (DDD + número)"
+             required>
+
+      <select class="input" name="tipo" required>
+        <option value="venda">Vendas</option>
+        <option value="assistencia">Assistência</option>
+      </select>
+
+      <input class="input"
+             name="assunto"
+             placeholder="Assunto"
+             required>
+
+      <textarea class="input"
+                name="descricao"
+                rows="6"
+                placeholder="Descreva o problema ou solicitação"
+                required></textarea>
+
+      <div style="display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
+        <a class="btn-ghost" href="{{ url_for('suporte_lista') }}">Cancelar</a>
+        <button class="btn" type="submit">Criar ticket</button>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}

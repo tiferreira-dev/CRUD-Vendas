@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Ticket #{{ ticket.id }}{% endblock %}
+{% block page_title %}Ticket #{{ ticket.id }}{% endblock %}
+{% block subtitle %}Detalhes e atualização de status{% endblock %}
+
+{% block content %}
+<div class="grid">
+
+  <!-- DADOS DO TICKET -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Informações do ticket</h2>
+      <div class="muted">{{ ticket.created_at }}</div>
+    </div>
+
+    <div class="card-body" style="display:grid; gap:12px;">
+      <div>
+        <div class="muted">Cliente</div>
+        <strong>{{ ticket.cliente_nome }}</strong><br>
+        <span class="muted">{{ ticket.cliente_whatsapp }}</span>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div>
+          <div class="muted">Tipo</div>
+          <div class="price">
+            {{ "Assistência" if ticket.tipo == "assistencia" else "Vendas" }}
+          </div>
+        </div>
+
+        <div>
+          <div class="muted">Status atual</div>
+          <div class="price">{{ ticket.status }}</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="muted">Assunto</div>
+        <strong>{{ ticket.assunto }}</strong>
+      </div>
+
+      <div>
+        <div class="muted">Descrição</div>
+        <div style="white-space: pre-wrap;">{{ ticket.descricao }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ATUALIZAR STATUS -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Atualizar status</h2>
+    </div>
+
+    <div class="card-body">
+      <form method="POST"
+            action="{{ url_for('suporte_status', ticket_id=ticket.id) }}"
+            style="display:grid; gap:10px;">
+
+        <select class="input" name="status" required>
+          <option value="aberto"
+            {% if ticket.status == "aberto" %}selected{% endif %}>
+            Aberto
+          </option>
+
+          <option value="em_atendimento"
+            {% if ticket.status == "em_atendimento" %}selected{% endif %}>
+            Em atendimento
+          </option>
+
+          <option value="resolvido"
+            {% if ticket.status == "resolvido" %}selected{% endif %}>
+            Resolvido
+          </option>
+        </select>
+
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+          <a class="btn-ghost" href="{{ url_for('suporte_lista') }}">Voltar</a>
+          <button class="btn" type="submit">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

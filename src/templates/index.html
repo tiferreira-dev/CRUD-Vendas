@@ -1,77 +1,254 @@
-<!doctype html>
-<html lang="pt-br">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Controle de vendas</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <div>
-        <h1 class="title">Controle de vendas</h1>
-        <p class="subtitle">Cadastre, atualize e acompanhe seus produtos em um só lugar.</p>
-      </div>
-      <div class="badge"><span class="dot"></span> Banco conectado</div>
+{% extends "base.html" %}
+
+{% block title %}Controle de vendas{% endblock %}
+{% block page_title %}Controle de vendas{% endblock %}
+{% block subtitle %}Cadastre, atualize e acompanhe seus produtos e o status das vendas.{% endblock %}
+
+{% block content %}
+<div class="grid">
+
+  <!-- DASHBOARD: Série temporal -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Dashboard (quase tempo real)</h2>
+      <div class="muted" id="dash-info">Atualizando...</div>
     </div>
-
-    <div class="grid">
-      <div class="card">
-        <div class="card-header">
-          <h2>Cadastrar produto</h2>
-        </div>
-        <div class="card-body">
-          <form class="form" method="POST" action="/add">
-            <input class="input" name="nome_produto" placeholder="Ex: Notebook" required>
-            <input class="input" name="valor" type="number" step="0.01" placeholder="Ex: 1999.90" required>
-            <button class="btn" type="submit">Adicionar</button>
-          </form>
-        </div>
+    <div class="card-body">
+      <div style="display:flex; gap:14px; flex-wrap:wrap; margin-bottom:12px;">
+        <div class="badge"><span class="dot"></span> Janela</div>
+        <div class="badge" id="dash-qtd">Qtd: --</div>
+        <div class="badge" id="dash-total">Total: R$ --</div>
       </div>
 
-      <div class="card">
-        <div class="card-header">
-          <h2>Produtos cadastrados</h2>
-          <div class="muted">{{ produtos|length }} item(s)</div>
-        </div>
-        <div class="card-body">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Produto</th>
-                <th>Valor</th>
-                <th style="text-align:right;">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for p in produtos %}
-              <tr class="row">
-                <td>{{ p.id }}</td>
-                <td>{{ p.nome_produto }}</td>
-                <td class="price">R$ {{ "%.2f"|format(p.valor) }}</td>
-                <td>
-                  <div class="actions">
-                    <form method="POST" action="/update">
-                      <input type="hidden" name="idvendas" value="{{ p.id }}">
-                      <input class="input" name="novo_valor" type="number" step="0.01" placeholder="Novo valor" required>
-                      <button class="btn-ghost" type="submit">Atualizar</button>
-                    </form>
+      <canvas id="salesChart" height="110"></canvas>
 
-                    <form method="POST" action="/delete" onsubmit="return confirm('Excluir este produto?');">
-                      <input type="hidden" name="id" value="{{ p.id }}">
-                      <button class="btn-danger" type="submit">Excluir</button>
-                    </form>
-                  </div>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
+      <div class="muted" style="margin-top:10px;">
+        Atualiza automaticamente a cada 3s (sem recarregar a página).
       </div>
     </div>
   </div>
-</body>
-</html>
+
+  <!-- DASHBOARD: Status (barras) -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Status das vendas (barras)</h2>
+      <div class="muted" id="status-info">Atualizando...</div>
+    </div>
+    <div class="card-body">
+      <canvas id="statusChart" height="110"></canvas>
+      <div class="muted" style="margin-top:10px;">
+        Mostra quantidade e total (R$) por status na mesma janela do dashboard.
+      </div>
+    </div>
+  </div>
+
+  <!-- CADASTRO -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Cadastrar produto</h2>
+    </div>
+    <div class="card-body">
+      <form class="form" method="POST" action="{{ url_for('add_product') }}">
+        <input class="input" name="nome_produto" placeholder="Ex: Notebook" required>
+        <input class="input" name="valor" type="number" step="0.01" placeholder="Ex: 1999.90" required>
+        <input class="input" name="imagem" placeholder="URL da imagem (opcional)">
+
+        <select class="input" name="status" required>
+          <option value="pendente" selected>Pendente</option>
+          <option value="pago">Pago</option>
+          <option value="cancelado">Cancelado</option>
+          <option value="entregue">Entregue</option>
+        </select>
+
+        <button class="btn" type="submit">Adicionar</button>
+      </form>
+
+      <div class="muted" style="margin-top:10px;">
+        Se você não escolher status, o banco coloca “pendente” por padrão.
+      </div>
+    </div>
+  </div>
+
+  <!-- LISTA -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Produtos cadastrados</h2>
+      <div class="muted">{{ produtos|length }} item(s)</div>
+    </div>
+
+    <div class="card-body">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Img</th>
+            <th>Produto</th>
+            <th>Valor</th>
+            <th>Status</th>
+            <th style="text-align:right;">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in produtos %}
+          <tr class="row">
+            <td>{{ p.id }}</td>
+            <td>
+              {% if p.imagem %}
+                <img src="{{ p.imagem }}" class="thumb" alt="{{ p.nome_produto }}"
+                     onerror="this.style.display='none';">
+              {% else %}
+                <span class="muted">—</span>
+              {% endif %}
+            </td>
+            <td>{{ p.nome_produto }}</td>
+            <td class="price">R$ {{ "%.2f"|format(p.valor) }}</td>
+            <td class="price">{{ p.status if p.status is defined else "—" }}</td>
+
+            <td style="text-align:right;">
+              <div class="actions">
+                <form method="POST" action="{{ url_for('update_product', produto_id=p.id) }}">
+                  <input class="input" name="valor" type="number" step="0.01" placeholder="Novo valor" required>
+                  <button class="btn-ghost" type="submit">Atualizar</button>
+                </form>
+
+                <form method="POST" action="{{ url_for('delete_product', produto_id=p.id) }}"
+                      onsubmit="return confirm('Excluir este produto?');">
+                  <button class="btn-danger" type="submit">Excluir</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+
+          {% if produtos|length == 0 %}
+          <tr>
+            <td colspan="6" class="muted">Nenhum produto cadastrado.</td>
+          </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const horasJanela = 24;
+  const refreshMs = 3000;
+
+  // -------- helpers --------
+  function moneyBR(v){
+    return (v ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+
+  function formatHour(label){
+    // label vem tipo: "2026-01-07 22:00:00"
+    // transforma em ISO para o Date entender
+    const d = new Date(label.replace(" ", "T"));
+    if (isNaN(d.getTime())) return label; // fallback
+    return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  }
+
+  // -------- Série temporal (linha) --------
+  const elInfo = document.getElementById("dash-info");
+  const elQtd  = document.getElementById("dash-qtd");
+  const elTot  = document.getElementById("dash-total");
+  const ctx = document.getElementById("salesChart").getContext("2d");
+
+  const chart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: [],
+      datasets: [
+        { label: "Qtd de vendas", data: [], yAxisID: "yQtd" },
+        { label: "Total R$", data: [], yAxisID: "yTotal" }
+      ]
+    },
+    options: {
+      responsive: true,
+      animation: false,
+      scales: {
+        yQtd: {
+          type: "linear",
+          position: "left",
+          beginAtZero: true,
+          ticks: { precision: 0 }
+        },
+        yTotal: {
+          type: "linear",
+          position: "right",
+          beginAtZero: true,
+          grid: { drawOnChartArea: false }
+        }
+      }
+    }
+  });
+
+  async function refreshSeries(){
+    try{
+      const r = await fetch(`/api/vendas/series?horas=${horasJanela}`, { cache: "no-store" });
+      const j = await r.json();
+      if(!j.ok) throw new Error(j.error || "Erro no endpoint /api/vendas/series");
+
+      chart.data.labels = (j.labels || []).map(formatHour);
+      chart.data.datasets[0].data = j.qtd || [];
+      chart.data.datasets[1].data = j.total || [];
+      chart.update("none");
+
+      elQtd.textContent = `Qtd: ${j.resumo?.qtd_total ?? 0}`;
+      elTot.textContent = `Total: ${moneyBR(j.resumo?.valor_total ?? 0)}`;
+
+      const now = new Date();
+      elInfo.textContent = `Última atualização: ${now.toLocaleTimeString("pt-BR")} | Janela: ${horasJanela}h`;
+    }catch(e){
+      elInfo.textContent = `Falha ao atualizar: ${e.message}`;
+    }
+  }
+
+  // -------- Status (barras) --------
+  const statusInfo = document.getElementById("status-info");
+  const statusCtx = document.getElementById("statusChart").getContext("2d");
+
+  const statusChart = new Chart(statusCtx, {
+    type: "bar",
+    data: {
+      labels: [],
+      datasets: [
+        { label: "Qtd", data: [] },
+        { label: "Total R$", data: [] }
+      ]
+    },
+    options: {
+      responsive: true,
+      animation: false,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+
+  async function refreshStatus(){
+    try{
+      const r = await fetch(`/api/vendas/status?horas=${horasJanela}`, { cache: "no-store" });
+      const j = await r.json();
+      if(!j.ok) throw new Error(j.error || "Erro no endpoint /api/vendas/status");
+
+      statusChart.data.labels = j.labels || [];
+      statusChart.data.datasets[0].data = j.qtd || [];
+      statusChart.data.datasets[1].data = j.total || [];
+      statusChart.update("none");
+
+      const now = new Date();
+      statusInfo.textContent = `Última atualização: ${now.toLocaleTimeString("pt-BR")} | Janela: ${horasJanela}h`;
+    }catch(e){
+      statusInfo.textContent = `Falha ao atualizar: ${e.message}`;
+    }
+  }
+
+  // Start
+  refreshSeries();
+  refreshStatus();
+  setInterval(() => { refreshSeries(); refreshStatus(); }, refreshMs);
+</script>
+{% endblock %}

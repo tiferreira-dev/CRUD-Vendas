@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Suporte{% endblock %}
+{% block page_title %}Suporte{% endblock %}
+{% block subtitle %}Gerenciamento de tickets{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h2>Tickets</h2>
+    <a class="btn" href="{{ url_for('suporte_novo_get') }}">Novo ticket</a>
+  </div>
+
+  <div class="card-body">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Cliente</th>
+          <th>Tipo</th>
+          <th>Status</th>
+          <th style="text-align:right;">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tickets %}
+        <tr class="row">
+          <td>#{{ t.id }}</td>
+          <td>{{ t.cliente_nome }}</td>
+          <td>{{ t.tipo }}</td>
+          <td class="price">{{ t.status }}</td>
+          <td style="text-align:right;">
+            <a class="btn-ghost" href="{{ url_for('suporte_detalhe', ticket_id=t.id) }}">Abrir</a>
+          </td>
+        </tr>
+        {% endfor %}
+
+        {% if tickets|length == 0 %}
+        <tr>
+          <td colspan="5" class="muted">Nenhum ticket criado.</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

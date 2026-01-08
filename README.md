@@ -9,16 +9,25 @@ Este projeto demonstra operações básicas de **CRUD** (Criar, Ler, Atualizar e
 
 Este projeto foi desenvolvido como um painel profissional de vendas para fins didáticos e portfólio.  
 Permite registrar vendas, visualizar, atualizar e remover registros de venda de forma interativa através de um navegador.  
-Seu foco é demonstrar integração entre Python, MySQL e templates front-end. 
+O foco é demonstrar integração entre Python, MySQL e templates front-end.
+
 ---
 
 # 🚀 Tecnologias Utilizadas
 
-* Python 3.x  
-* Flask (micro-framework web)  
-* MySQL (banco de dados relacional)  
-* Jinja2 Templates (front-end HTML)  
-* CSS (interface básica)  
+- Python 3
+- Flask
+- MySQL
+- Jinja2 (templates HTML)
+- CSS
+- mysql-connector-python
+- python-dotenv
+- pandas (análises/apoio)
+- matplotlib + seaborn (visualização local/offline)
+- Programação modular
+
+---
+
 
 ---
 

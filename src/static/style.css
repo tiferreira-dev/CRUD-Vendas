@@ -1,7 +1,7 @@
 :root{
   --bg:#030325;
   --card:#060938;
-  --card2:##060938;
+  --card2:#060938; /* corrigido (era ##) */
   --text:#e8eefc;
   --muted:#a9b4d0;
   --primary:#060938;
@@ -14,6 +14,7 @@
 
 *{ box-sizing:border-box; }
 html,body{ height:100%; }
+
 body{
   margin:0;
   background: radial-gradient(1200px 600px at 10% 10%, rgb(0, 4, 36), transparent 58%),
@@ -30,12 +31,23 @@ body{
   padding: 0 18px;
 }
 
+/* =========================
+   HEADER
+   ========================= */
 .header{
   display:flex;
   justify-content:space-between;
   align-items:flex-end;
   gap:12px;
   margin-bottom: 18px;
+}
+
+.header-actions{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap: wrap;
+  justify-content:flex-end;
 }
 
 .title{
@@ -62,6 +74,11 @@ body{
   font-size: 13px;
 }
 
+.badge-error{
+  border-color: rgba(255,77,77,.35);
+  background: rgba(255,77,77,.10);
+}
+
 .dot{
   width: 9px;
   height: 9px;
@@ -70,6 +87,14 @@ body{
   box-shadow: 0 0 0 6px rgba(34,197,94,.18);
 }
 
+.badge-error .dot{
+  background: var(--danger);
+  box-shadow: 0 0 0 6px rgba(255,77,77,.18);
+}
+
+/* =========================
+   GRID / CARDS
+   ========================= */
 .grid{
   display:grid;
   grid-template-columns: 1fr;
@@ -104,9 +129,12 @@ body{
   padding: 16px 18px 18px;
 }
 
+/* =========================
+   FORMS / INPUTS / BUTTONS
+   ========================= */
 .form{
   display:grid;
-  grid-template-columns: 1.2fr .8fr auto;
+  grid-template-columns: 1.2fr .8fr 1.2fr auto; /* agora suporta "imagem" */
   gap: 10px;
 }
 
@@ -135,6 +163,32 @@ body{
 .btn:hover{ filter: brightness(1.05); }
 .btn:active{ transform: translateY(1px); }
 
+.btn-ghost{
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.04);
+  color: var(--text);
+  cursor:pointer;
+  text-decoration: none;
+  display:inline-flex;
+  align-items:center;
+}
+.btn-ghost:hover{ background: rgba(255,255,255,.07); }
+
+.btn-danger{
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,77,77,.35);
+  background: rgba(255,77,77,.14);
+  color: #ffd0d0;
+  cursor:pointer;
+}
+.btn-danger:hover{ background: rgba(255,77,77,.20); }
+
+/* =========================
+   TABLE
+   ========================= */
 .table{
   width:100%;
   border-collapse: separate;
@@ -152,7 +206,6 @@ body{
 
 .row{
   background: rgba(0,0,0,.16);
-  border: 1px solid var(--border);
 }
 
 .table td{
@@ -173,44 +226,76 @@ body{
 }
 
 .muted{ color: var(--muted); }
+.price{ font-weight: 700; }
 
 .actions{
   display:flex;
   gap:8px;
   align-items:center;
   justify-content:flex-end;
+  flex-wrap: wrap;
 }
 
-.btn-ghost{
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
+/* Thumbnail da imagem */
+.thumb{
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid rgba(255,255,255,.12);
   background: rgba(255,255,255,.04);
-  color: var(--text);
-  cursor:pointer;
 }
-.btn-ghost:hover{ background: rgba(255,255,255,.07); }
 
-.btn-danger{
-  padding: 10px 12px;
+/* =========================
+   ALERTS / TOASTS (flash)
+   ========================= */
+.alert{
+  margin: 12px 0 16px;
+  padding: 12px 14px;
   border-radius: 12px;
-  border: 1px solid rgba(255,77,77,.35);
-  background: rgba(255,77,77,.14);
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.16);
+}
+
+.alert.error{
+  border-color: rgba(255,77,77,.35);
+  background: rgba(255,77,77,.08);
   color: #ffd0d0;
-  cursor:pointer;
-}
-.btn-danger:hover{ background: rgba(255,77,77,.20); }
-
-.price{
-  font-weight: 700;
 }
 
+.toasts{
+  display:grid;
+  gap:10px;
+  margin: 12px 0 16px;
+}
+
+.toast{
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.20);
+  color: #fff;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  font-size: 14px;
+}
+
+.toast.success{ border-color: rgba(34,197,94,.35); }
+.toast.error{ border-color: rgba(255,77,77,.35); }
+
+/* =========================
+   RESPONSIVE
+   ========================= */
 @media (max-width: 720px){
   .form{
     grid-template-columns: 1fr;
   }
   .actions{
     justify-content:flex-start;
-    flex-wrap: wrap;
+  }
+  .header{
+    align-items:flex-start;
+  }
+  .header-actions{
+    justify-content:flex-start;
   }
 }
