@@ -3,15 +3,20 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{% block title %}Sistema{% endblock %}</title>
+  <title>{% block title %}GET SMART{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="container">
 
-    <div class="header">
-      <div>
-        <h1 class="title">{% block page_title %}Sistema{% endblock %}</h1>
+   <div class="header">
+      <div class="brand-logo">
+        <img src="{{ url_for('static', filename='logo.jpg.jpeg') }}" alt="GET SMART" width="300">
+      </div>
+
+      <div class="page-info">
+        <h1 class="title">{% block page_title %}Painel{% endblock %}</h1>
         <p class="subtitle">{% block subtitle %}{% endblock %}</p>
       </div>
 
@@ -20,9 +25,9 @@
         <a class="btn-ghost" href="{{ url_for('suporte_lista') }}">Suporte</a>
 
         {% if erro %}
-          <div class="badge badge-error"><span class="dot"></span> Banco com erro</div>
+          <div class="badge badge-error"><span class="dot" style="background:red"></span> Erro no Banco</div>
         {% else %}
-          <div class="badge"><span class="dot"></span> Banco conectado</div>
+          <div class="badge"><span class="dot"></span> Online</div>
         {% endif %}
       </div>
     </div>
