@@ -17,7 +17,7 @@ body{
   background:#0b0b0b;
 }
 
-/* FUNDO: preto limpo (sem repetir a arte) */
+/* FUNDO: preto limpo */
 .auth{
   min-height:100vh;
   display:grid;
@@ -65,9 +65,9 @@ body{
   height:150px;
   object-fit:contain;
   border-radius:18px;
-  background: rgba(0,0,0,.30);
-  border:1px solid rgba(255,255,255,.18);
-  padding:10px;
+  background: rgba(0, 0, 0, 0);
+  border:1px solid rgba(255, 255, 255, 0);
+  padding:100px;
 }
 
 .brand-text h2{
