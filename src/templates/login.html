@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <title>Login Get Smart</title>
+</head>
+
+<body>
+  <div class="auth">
+    <div class="auth-card">
+
+      <!-- LADO ESQUERDO: LOGO -->
+      <aside class="auth-left">
+        <img class="brand-logo" src="{{ url_for('static', filename='logo.jpg.jpeg') }}" alt="Logo Get Smart">
+        <div class="brand-text">
+          <h2>Get Smart</h2>
+          <p>Acesse a plataforma com segurança.</p>
+        </div>
+      </aside>
+
+      <!-- LADO DIREITO: FORM -->
+      <main class="auth-right">
+        <h1>Entrar na plataforma</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-wrap">
+              {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" class="form">
+          <div class="input-container">
+            <input name="email" placeholder="Email" type="email" required>
+            <img width="28" height="28" src="https://img.icons8.com/liquid-glass/48/user.png" alt="user"/>
+          </div>
+
+          <div class="input-container">
+            <input name="senha" placeholder="Senha" type="password" required>
+            <img width="22" height="22" src="https://img.icons8.com/liquid-glass/48/lock.png" alt="lock"/>
+            <a class="help-link" href="#">Esqueci minha senha</a>
+          </div>
+
+          <button type="submit" class="submit-button">Entrar</button>
+
+          <div class="register-link">
+            <p>Não está cadastrado? <a href="#">Cadastrar</a></p>
+          </div>
+        </form>
+      </main>
+
+    </div>
+  </div>
+</body>
+</html>

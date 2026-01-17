@@ -1,12 +1,82 @@
 import os
-from flask import Flask, flash, redirect, render_template, request, url_for, jsonify
+from functools import wraps
+
+from flask import (
+    Flask, flash, redirect, render_template, request, url_for, jsonify, session
+)
+from werkzeug.security import check_password_hash
+
 from database import get_connection
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
 
 # =========================
-# VENDAS (bdvendas.vendas: id, nome_produto, valor, imagem, created_at)
+# CONSTANTES
+# =========================
+VALID_VENDA_STATUS = {"pendente", "pago", "cancelado", "entregue"}
+VALID_TIPO = {"venda", "assistencia"}
+VALID_STATUS = {"aberto", "em_atendimento", "resolvido"}
+
+
+# =========================
+# AUTH
+# =========================
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if "user_id" not in session:
+            # Evita flood de flash quando o usuário já está no /login
+            if request.endpoint != "login":
+                flash("Faça login para continuar.", "error")
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return decorated
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        email = (request.form.get("email") or "").strip().lower()
+        senha = request.form.get("senha") or ""
+
+        if not email or not senha:
+            flash("Email e senha são obrigatórios.", "error")
+            return redirect(url_for("login"))
+
+        conn = get_connection()
+        if not conn:
+            flash("Erro ao conectar ao banco.", "error")
+            return redirect(url_for("login"))
+
+        cur = conn.cursor(dictionary=True)
+        cur.execute("SELECT id, nome, email, senha_hash FROM usuarios WHERE email=%s", (email,))
+        user = cur.fetchone()
+        cur.close()
+        conn.close()
+
+        if not user or not check_password_hash(user["senha_hash"], senha):
+            flash("Credenciais inválidas.", "error")
+            return redirect(url_for("login"))
+
+        session["user_id"] = user["id"]
+        session["user_nome"] = user["nome"]
+
+        flash(f"Bem-vindo, {user['nome']}!", "success")
+        return redirect(url_for("index"))
+
+    return render_template("login.html")
+
+
+@app.get("/logout")
+def logout():
+    session.clear()
+    flash("Você saiu do sistema.", "success")
+    return redirect(url_for("login"))
+
+
+# =========================
+# VENDAS
 # =========================
 def fetch_products():
     conn = get_connection()
@@ -21,20 +91,19 @@ def fetch_products():
     return produtos, ""
 
 
-
 @app.get("/")
+@login_required
 def index():
     produtos, erro = fetch_products()
     return render_template("index.html", produtos=produtos, erro=erro)
 
 
-VALID_VENDA_STATUS = {"pendente", "pago", "cancelado", "entregue"}
-
 @app.post("/add")
+@login_required
 def add_product():
     nome_produto = request.form.get("nome_produto", "").strip().title()
     valor_raw = request.form.get("valor", "").strip()
-    imagem = request.form.get("imagem", "").strip() or None  # URL opcional
+    imagem = request.form.get("imagem", "").strip() or None
     status = request.form.get("status", "pendente").strip()
 
     if not nome_produto or not valor_raw:
@@ -74,6 +143,7 @@ def add_product():
 
 
 @app.post("/update/<int:produto_id>")
+@login_required
 def update_product(produto_id):
     valor_raw = request.form.get("valor", "").strip()
     if not valor_raw:
@@ -98,15 +168,13 @@ def update_product(produto_id):
     cur.close()
     conn.close()
 
-    if affected == 0:
-        flash("Produto não encontrado.", "error")
-    else:
-        flash("Valor atualizado com sucesso!", "success")
-
+    flash("Produto não encontrado." if affected == 0 else "Valor atualizado com sucesso!",
+          "error" if affected == 0 else "success")
     return redirect(url_for("index"))
 
 
 @app.post("/delete/<int:produto_id>")
+@login_required
 def delete_product(produto_id):
     conn = get_connection()
     if not conn:
@@ -120,39 +188,29 @@ def delete_product(produto_id):
     cur.close()
     conn.close()
 
-    if affected == 0:
-        flash("Produto não encontrado.", "error")
-    else:
-        flash("Produto deletado com sucesso!", "success")
-
+    flash("Produto não encontrado." if affected == 0 else "Produto deletado com sucesso!",
+          "error" if affected == 0 else "success")
     return redirect(url_for("index"))
 
 
 # =========================
-# API - GRÁFICO (quase tempo real)
+# API - GRÁFICO
 # =========================
 @app.get("/api/vendas/series")
+@login_required
 def api_vendas_series():
-    """
-    Retorna série temporal (últimas N horas) com:
-      - qtd de vendas por hora
-      - total (R$) por hora
-      - resumo da janela
-    """
     try:
         horas = int(request.args.get("horas", 24))
     except ValueError:
         horas = 24
 
-    horas = max(1, min(horas, 168))  # 1h a 7 dias
+    horas = max(1, min(horas, 168))
 
     conn = get_connection()
     if not conn:
         return jsonify({"ok": False, "error": "Erro ao conectar ao banco."}), 500
 
     cur = conn.cursor(dictionary=True)
-
-    # Depende de vendas.created_at existir
     cur.execute(
         """
         SELECT
@@ -183,32 +241,63 @@ def api_vendas_series():
     cur.close()
     conn.close()
 
-    labels = [r["bucket"] for r in rows]
-    qtd = [int(r["qtd"]) for r in rows]
-    total = [float(r["total"]) for r in rows]
+    return jsonify({
+        "ok": True,
+        "labels": [r["bucket"] for r in rows],
+        "qtd": [int(r["qtd"]) for r in rows],
+        "total": [float(r["total"]) for r in rows],
+        "resumo": {
+            "qtd_total": int(resumo["qtd_total"]),
+            "valor_total": float(resumo["valor_total"]),
+            "janela_horas": horas,
+        },
+    })
 
-    return jsonify(
-        {
-            "ok": True,
-            "labels": labels,
-            "qtd": qtd,
-            "total": total,
-            "resumo": {
-                "qtd_total": int(resumo["qtd_total"]),
-                "valor_total": float(resumo["valor_total"]),
-                "janela_horas": horas,
-            },
-        }
+
+@app.get("/api/vendas/status")
+@login_required
+def api_vendas_status():
+    try:
+        horas = int(request.args.get("horas", 24))
+    except ValueError:
+        horas = 24
+
+    horas = max(1, min(horas, 168))
+
+    conn = get_connection()
+    if not conn:
+        return jsonify({"ok": False, "error": "Erro ao conectar ao banco."}), 500
+
+    cur = conn.cursor(dictionary=True)
+    cur.execute(
+        """
+        SELECT
+          status,
+          COUNT(*) AS qtd,
+          COALESCE(SUM(valor), 0) AS total
+        FROM vendas
+        WHERE created_at >= (NOW() - INTERVAL %s HOUR)
+        GROUP BY status
+        ORDER BY FIELD(status,'pendente','pago','cancelado','entregue')
+        """,
+        (horas,),
     )
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        "ok": True,
+        "labels": [r["status"] for r in rows],
+        "qtd": [int(r["qtd"]) for r in rows],
+        "total": [float(r["total"]) for r in rows],
+        "janela_horas": horas
+    })
 
 
 # =========================
-# SUPORTE (bdvendas.tickets)
+# SUPORTE
 # =========================
-VALID_TIPO = {"venda", "assistencia"}
-VALID_STATUS = {"aberto", "em_atendimento", "resolvido"}
-
-
 def fetch_tickets(limit=50):
     conn = get_connection()
     if not conn:
@@ -287,17 +376,20 @@ def update_ticket_status(ticket_id, status):
 
 
 @app.get("/suporte")
+@login_required
 def suporte_lista():
     tickets, erro = fetch_tickets()
     return render_template("suporte_lista.html", tickets=tickets, erro=erro)
 
 
 @app.get("/suporte/novo")
+@login_required
 def suporte_novo_get():
     return render_template("suporte_novo.html")
 
 
 @app.post("/suporte/novo")
+@login_required
 def suporte_novo_post():
     try:
         ticket_id = create_ticket(
@@ -315,6 +407,7 @@ def suporte_novo_post():
 
 
 @app.get("/suporte/<int:ticket_id>")
+@login_required
 def suporte_detalhe(ticket_id):
     ticket, erro = fetch_ticket(ticket_id)
     if erro:
@@ -328,65 +421,17 @@ def suporte_detalhe(ticket_id):
 
 
 @app.post("/suporte/<int:ticket_id>/status")
+@login_required
 def suporte_status(ticket_id):
     try:
         status = request.form.get("status", "aberto")
         affected = update_ticket_status(ticket_id, status)
-        if affected == 0:
-            flash("Ticket não encontrado.", "error")
-        else:
-            flash("Status atualizado.", "success")
+        flash("Ticket não encontrado." if affected == 0 else "Status atualizado.",
+              "error" if affected == 0 else "success")
     except Exception as e:
         flash(str(e), "error")
 
     return redirect(url_for("suporte_detalhe", ticket_id=ticket_id))
-
-@app.get("/api/vendas/status")
-def api_vendas_status():
-    """
-    Retorna vendas agrupadas por status (qtd e total R$) na janela das últimas N horas.
-    """
-    try:
-        horas = int(request.args.get("horas", 24))
-    except ValueError:
-        horas = 24
-
-    horas = max(1, min(horas, 168))  # 1h a 7 dias
-
-    conn = get_connection()
-    if not conn:
-        return jsonify({"ok": False, "error": "Erro ao conectar ao banco."}), 500
-
-    cur = conn.cursor(dictionary=True)
-    cur.execute(
-        """
-        SELECT
-          status,
-          COUNT(*) AS qtd,
-          COALESCE(SUM(valor), 0) AS total
-        FROM vendas
-        WHERE created_at >= (NOW() - INTERVAL %s HOUR)
-        GROUP BY status
-        ORDER BY FIELD(status,'pendente','pago','cancelado','entregue')
-        """,
-        (horas,),
-    )
-    rows = cur.fetchall()
-    cur.close()
-    conn.close()
-
-    labels = [r["status"] for r in rows]
-    qtd = [int(r["qtd"]) for r in rows]
-    total = [float(r["total"]) for r in rows]
-
-    return jsonify({
-        "ok": True,
-        "labels": labels,
-        "qtd": qtd,
-        "total": total,
-        "janela_horas": horas
-    })
-
 
 
 if __name__ == "__main__":

@@ -1,0 +1,195 @@
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:"Poppins",sans-serif;
+}
+
+:root{
+  --accent:#cddb00;
+  --stroke:rgba(255,255,255,.16);
+  --text:#ffffff;
+  --muted:rgba(255,255,255,.72);
+}
+
+body{
+  min-height:100vh;
+  background:#0b0b0b;
+}
+
+/* FUNDO: preto limpo (sem repetir a arte) */
+.auth{
+  min-height:100vh;
+  display:grid;
+  place-items:center;
+  padding:24px;
+  background: radial-gradient(circle at 30% 20%, rgba(205,219,0,.08), transparent 45%),
+              #0b0b0b;
+}
+
+/* CARD */
+.auth-card{
+  width:min(1000px, 95%);
+  min-height:520px;
+
+  display:grid;
+  grid-template-columns: 1.05fr 1fr;
+
+  border:2px solid var(--accent);
+  border-radius:28px;
+  overflow:hidden;
+
+  /* vidro leve, mas sem “mancha” */
+  background: rgba(0,0,0,.35);
+  backdrop-filter: blur(14px);
+}
+
+/* ESQUERDA: aqui sim entra a arte */
+.auth-left{
+  padding:42px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end; /* deixa igual seu print */
+  gap:14px;
+
+  border-right:1px solid var(--stroke);
+
+  background:
+    linear-gradient(0deg, rgba(0,0,0,.55), rgba(0,0,0,.15)),
+    url("logo.jpg.jpeg") center / cover no-repeat;
+}
+
+/* Logo menor (quadradinho) */
+.brand-logo{
+  width:150px;
+  height:150px;
+  object-fit:contain;
+  border-radius:18px;
+  background: rgba(0,0,0,.30);
+  border:1px solid rgba(255,255,255,.18);
+  padding:10px;
+}
+
+.brand-text h2{
+  color:var(--text);
+  font-size:30px;
+  font-weight:900;
+  letter-spacing:.2px;
+}
+
+.brand-text p{
+  color:var(--muted);
+  font-size:15px;
+  max-width:340px;
+  line-height:1.45;
+}
+
+/* DIREITA: área limpa */
+.auth-right{
+  padding:42px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+
+  /* tira qualquer influência de fundo detalhado */
+  background: rgba(0,0,0,.25);
+}
+
+.auth-right h1{
+  color:var(--text);
+  font-size:30px;
+  font-weight:900;
+  margin-bottom:22px;
+}
+
+/* form */
+.form{ display:grid; gap:14px; }
+
+.input-container{
+  position:relative;
+  display:grid;
+  gap:8px;
+}
+
+.input-container input{
+  width:100%;
+  height:50px;
+
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.20);
+  outline:none;
+
+  background: rgba(0,0,0,.45);
+  color:#fff;
+  font-size:15px;
+
+  padding: 12px 46px 12px 16px;
+}
+
+.input-container input::placeholder{
+  color: rgba(255,255,255,.60);
+}
+
+.input-container img{
+  position:absolute;
+  right:16px;
+  top:14px;
+  width:20px;
+  height:20px;
+  opacity:.9;
+}
+
+/* link */
+.help-link{
+  width:fit-content;
+  font-size:13px;
+  color: rgba(255,255,255,.78);
+  text-decoration:none;
+}
+.help-link:hover{ text-decoration:underline; }
+
+/* botão igual ao print */
+.submit-button{
+  width:100%;
+  height:52px;
+  margin-top:10px;
+
+  border:none;
+  border-radius:14px;
+
+  background: var(--accent);
+  color:#121212;
+  font-weight:900;
+  font-size:16px;
+  cursor:pointer;
+}
+.submit-button:hover{ background: rgba(205,219,0,.82); }
+
+/* register */
+.register-link{
+  text-align:center;
+  margin-top:12px;
+}
+.register-link p{
+  color: rgba(255,255,255,.72);
+  font-size:14px;
+}
+.register-link p a{
+  color: var(--accent);
+  font-weight:900;
+  text-decoration:none;
+}
+.register-link p a:hover{ text-decoration:underline; }
+
+/* responsivo */
+@media (max-width:900px){
+  .auth-card{ grid-template-columns:1fr; }
+  .auth-left{
+    border-right:none;
+    border-bottom:1px solid var(--stroke);
+    align-items:center;
+    text-align:center;
+    justify-content:center;
+  }
+  .auth-right{ background: rgba(0,0,0,.20); }
+}
